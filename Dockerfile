@@ -24,20 +24,19 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # install Python packages
-COPY requirements.txt .
+COPY --chown=1001:1001 requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # Runtime stage
 FROM bitnami/spark:3.5-debian-12
 
 # Copy virtualenv and configs
-COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /opt/bitnami/spark/venv /opt/bitnami/spark/venv
-ENV PATH="/opt/venv/bin:$PATH"
-COPY config/spark-defaults.conf ${SPARK_HOME}/conf/
-COPY scripts/entrypoint.sh /entrypoint.sh
-RUN chown 1001:1001 chmod +x /entrypoint.sh
+COPY --from=builder --chown=1001:1001 /opt/venv /opt/venv
+# COPY --from=builder /opt/bitnami/spark/venv /opt/bitnami/spark/venv
+COPY --chown=1001:1001 config/spark-defaults.conf ${SPARK_HOME}/conf/
+COPY --chown=1001:1001 scripts/entrypoint.sh /entrypoint.sh
 
+# final setup
 USER 1001
-
+ENV PATH="/opt/venv/bin:$PATH"
 ENTRYPOINT [ "/entrypoint.sh" ]

@@ -13,7 +13,8 @@ services:
       - ./notebooks:/notebooks
       - ./data:/data
     environment:
-      - SPARK_MODE=master
+      - SPARK_MODE=master # Must be exactly 'master' or 'worker'
+      - SPARK_MASTER_URL=spark://spark-master:7077 # Only for workers
     mem_limit: 2G
     cpus: 1.0
 
@@ -26,8 +27,8 @@ services:
       - ./notebooks:/notebooks
       - ./data:/data
     environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_MODE=worker # Must be exactly 'master' or 'worker'
+      - SPARK_MASTER_URL=spark://spark-master:7077 # Required for workers
     mem_limit: 2G
     cpus: 1.0
     scale: 2
