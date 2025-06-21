@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Create base dir if they don't exist
-DAY="day$(date +%d)"
+# Fix: Correct date format
+DATE=$(date +%Y%m%d)  # Was missing % before Y
 mkdir -p /notebooks/{pyspark,sql,python}
 
 # Current date for file naming

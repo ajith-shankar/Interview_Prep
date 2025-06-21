@@ -3,10 +3,11 @@ version: '3.8'
 services:
   spark-master:
     build: .
-    image: interview-spark:3.5-debian12
+    # image: interview-spark:3.5-debian12
     hostname: spark-master
     ports:
       - "8080:8080" # Spark Ui
+      - "7077:7077" # Master URL
       - "4040:4040" # Spark app
       - "8888:8888" # Jupyter notebbok
     volumes:
@@ -14,40 +15,22 @@ services:
       - ./data:/data
     environment:
       - SPARK_MODE=master # Must be exactly 'master' or 'worker'
-      - SPARK_MASTER_URL=spark://spark-master:7077 # Only for workers
     mem_limit: 2G
     cpus: 1.0
 
   spark-worker:
-    image: interview-spark:3.5-debian12
-    build: .
+    image: interview-spark:3.5-debian12 # Use built image
     depends_on:
       - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
     volumes:
       - ./notebooks:/notebooks
       - ./data:/data
-    environment:
-      - SPARK_MODE=worker # Must be exactly 'master' or 'worker'
-      - SPARK_MASTER_URL=spark://spark-master:7077 # Required for workers
     mem_limit: 2G
     cpus: 1.0
     scale: 2
-  # spark-worker-2:
-  #   build: .
-  #   container_name: spark-worker-2
-  #   hostname: spark-worker-2
-  #   ports:
-  #     - "8082:8081"
-  #   depends_on:
-  #     - spark-master
-  #   volumes:
-  #     - ./notebooks:/home/jovyan/work
-  #     - ./data:/data
-  #   environment:
-  #     - SPARK_MODE=worker
-  #     - SPARK_MASTER_URL=spark://spark-master:7077
-  #   networks:
-  #     - spark-network
 
   postgres:
     image: postgres:16-alpine
@@ -59,6 +42,10 @@ services:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+volumes:
+  postgres-data:
+
 
 networks:
   default:
