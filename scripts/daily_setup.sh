@@ -5,9 +5,6 @@
 DATE=$(date +%Y%m%d)  # Was missing % before Y
 mkdir -p /notebooks/{pyspark,sql,python}
 
-# Current date for file naming
-DATE=$(date +Y%m%d)
-
 # 1. PySpark files 
 for i in {1..2}; do
     cat > "/notebooks/pyspark/pyspark_${DATE}_q${i}.py" <<EOL

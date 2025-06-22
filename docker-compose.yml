@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   spark-master:
+    image: interview-spark:optimized # Single image for both
     build: .
     hostname: spark-master
     ports:
@@ -11,6 +12,7 @@ services:
       - "8888:8888" # Jupyter notebbok
     volumes:
       - ./notebooks:/notebooks
+      - ./scripts:/scripts
       - ./data:/data
     environment:
       - SPARK_MODE=master # Must be exactly 'master' or 'worker'
@@ -18,7 +20,7 @@ services:
     cpus: 1.0
 
   spark-worker:
-    build: .
+    image: interview-spark:optimized # Same image as master
     depends_on:
       - spark-master
     environment:
@@ -26,6 +28,7 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
     volumes:
       - ./notebooks:/notebooks
+      - ./scripts:/scripts
       - ./data:/data
     mem_limit: 2G
     cpus: 1.0
