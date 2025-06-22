@@ -1,49 +1,34 @@
-# Stage 1: Builder - Use the same base image to ensure compatibility
-FROM bitnami/spark:3.5 as builder
+FROM openjdk:11-jre-slim
 
-USER root
-
-# Install build dependencies
-RUN install_packages python3-dev gcc build-essential && \
-    apt-get clean && \
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y curl python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Set environment variables
+ENV SPARK_VERSION=3.5.0 \
+    HADOOP_VERSION=3 \
+    SPARK_HOME=/opt/spark
 
-# Install Python packages
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    rm -rf /root/.cache/pip
+# Download and extract Spark
+RUN curl -fsSL https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz | \
+    tar -xz -C /opt && \
+    mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME}
 
-# Clean Python cache
-RUN find /opt/venv -type d -name '__pycache__' -exec rm -rf {} +
+ENV PATH="${SPARK_HOME}/bin:${PATH}"
 
-# Stage 2: Runtime - Minimal image
-FROM bitnami/spark:3.5
+# Copy Spark config
+COPY config/spark-defaults.conf ${SPARK_HOME}/conf/spark-defaults.conf
 
-# Install only runtime dependencies
-USER root
-RUN install_packages libgomp1 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Copy scripts and notebooks
+COPY scripts/ /scripts/
+COPY notebooks/ /notebooks/
+COPY data/ /data/
 
-# Copy virtual environment
-COPY --from=builder /opt/venv /opt/venv
+# Install Python dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 
-# Clean Spark installation
-RUN rm -rf \
-    /opt/bitnami/spark/examples \
-    /opt/bitnami/spark/jars/*-sources.jar \
-    /opt/bitnami/spark/jars/*-javadoc.jar \
-    /opt/bitnami/spark/python/test
-
-# Copy entrypoint
-COPY --chown=1001:1001 scripts/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Final setup
-USER 1001
-ENV PATH="/opt/venv/bin:$PATH"
-ENTRYPOINT ["/entrypoint.sh"]
+# Entrypoint
+RUN chmod +x /scripts/entrypoint.sh
+ENTRYPOINT ["/scripts/entrypoint.sh"]
