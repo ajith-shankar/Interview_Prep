@@ -3,7 +3,6 @@ version: '3.8'
 services:
   spark-master:
     build: .
-    # image: interview-spark:3.5-debian12
     hostname: spark-master
     ports:
       - "8080:8080" # Spark Ui
@@ -19,7 +18,7 @@ services:
     cpus: 1.0
 
   spark-worker:
-    image: interview-spark:3.5-debian12 # Use built image
+    build: .
     depends_on:
       - spark-master
     environment:
