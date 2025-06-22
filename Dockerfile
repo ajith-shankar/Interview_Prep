@@ -17,6 +17,9 @@ RUN curl -fsSL https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spar
 
 ENV PATH="${SPARK_HOME}/bin:${PATH}"
 
+# Copy log4j.properties to Spark config directory to suppress logs
+COPY config/log4j.properties ${SPARK_HOME}/conf/log4j.properties
+
 # Copy only necessary files
 COPY scripts/ /scripts/
 COPY requirements.txt /tmp/requirements.txt
