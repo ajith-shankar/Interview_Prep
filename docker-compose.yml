@@ -42,6 +42,7 @@ services:
       POSTGRES_DB: interview_prep_db
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+      - ./notebooks:/notebooks 
     ports:
       - "5432:5432"
 
